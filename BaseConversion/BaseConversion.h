@@ -5,6 +5,7 @@
 
 class BaseConversionServer;
 class BaseConversionClient;
+class QTcpSocket;
 
 class BaseConversion : public QWidget
 {
@@ -18,7 +19,6 @@ private:
     Ui::BaseConversionClass ui;
     BaseConversionServer* server;
     BaseConversionClient* client;
-
 
     QString message;
 };

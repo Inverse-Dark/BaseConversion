@@ -49,23 +49,23 @@ BaseConversion::BaseConversion(QWidget *parent)
             // 开始监听
             server->listen(QHostAddress::Any, ui.lineEditServerPort->text().toInt());
             if (server->isListening()) {
-                ui.pushButtonOpen->setText("Close");
-                message = QString("[%1]# Open server surrces. port: %2\n").arg(date).arg(ui.lineEditServerPort->text().toInt());
+                ui.pushButtonOpen->setText(tr("Close"));
+                message = QString(tr("[%1]# Open server surrces. port: %2\n")).arg(date).arg(ui.lineEditServerPort->text().toInt());
                 serverCnt++;
             }else{
-                message = QString("[%1]# Open server failed. port:%2\n").arg(date).arg(ui.lineEditServerPort->text().toInt());
+                message = QString(tr("[%1]# Open server failed. port:%2\n")).arg(date).arg(ui.lineEditServerPort->text().toInt());
             }
             ui.plainTextEditDataLogServer->appendPlainText(message);
         }
         else {
             server->close();
             if (!server->isListening()) {
-                ui.pushButtonOpen->setText("Open");
-                message = QString("[%1]# Close server surrces\n").arg(date);
+                ui.pushButtonOpen->setText(tr("Open"));
+                message = QString(tr("[%1]# Close server surrces\n")).arg(date);
                 serverCnt++;
             }
             else {
-                message = QString("[%1]# Close server failed\n").arg(date);
+                message = QString(tr("[%1]# Close server failed\n")).arg(date);
             }
             ui.plainTextEditDataLogServer->appendPlainText(message);
         }
@@ -78,13 +78,13 @@ BaseConversion::BaseConversion(QWidget *parent)
             // 连接服务器
             client->connectToServer(ui.lineEditClientIP->text(), ui.lineEditClientPort->text().toInt());
             if (client->isConnected()) {
-                ui.pushButtonConnect->setText("Disconnect");
-                message = QString("[%1]# Connect %2:%3 surrces\n").arg(date)
+                ui.pushButtonConnect->setText(tr("Disconnect"));
+                message = QString(tr("[%1]# Connect %2:%3 surrces\n")).arg(date)
 					.arg(ui.lineEditClientIP->text()).arg(ui.lineEditClientPort->text().toInt());
                 clientCnt++;
             }
             else {
-                message = QString("[%1]# Connect %2:%3 failed\n").arg(date)
+                message = QString(tr("[%1]# Connect %2:%3 failed\n")).arg(date)
                     .arg(ui.lineEditClientIP->text()).arg(ui.lineEditClientPort->text().toInt());
             }
             ui.plainTextEditDataLogClient->appendPlainText(message);
@@ -92,13 +92,13 @@ BaseConversion::BaseConversion(QWidget *parent)
         else {
 			client->disconnectToServer();
             if (!client->isConnected()) {
-                ui.pushButtonConnect->setText("Connect");
-                message = QString("[%1]# Disconnect %2:%3 surrces\n").arg(date)
+                ui.pushButtonConnect->setText(tr("Connect"));
+                message = QString(tr("[%1]# Disconnect %2:%3 surrces\n")).arg(date)
                     .arg(ui.lineEditClientIP->text()).arg(ui.lineEditClientPort->text().toInt());
                 clientCnt++;
             }
             else {
-                message = QString("[%1]# Disconnect %2:%3 failed\n").arg(date)
+                message = QString(tr("[%1]# Disconnect %2:%3 failed\n")).arg(date)
                     .arg(ui.lineEditClientIP->text()).arg(ui.lineEditClientPort->text().toInt());
             }
             ui.plainTextEditDataLogClient->appendPlainText(message);
@@ -112,7 +112,7 @@ BaseConversion::BaseConversion(QWidget *parent)
             // 获取客户端的 IP 地址和端口
             QHostAddress clientAddress = socket->peerAddress();
             quint16 clientPort = socket->peerPort();
-            message = QString("[%1] client %2:%3 join.\n").arg(date)
+            message = QString(tr("[%1] client %2:%3 join.\n")).arg(date)
                 .arg(clientAddress.toString()).arg(clientPort);
             ui.plainTextEditDataLogServer->appendPlainText(message);
 
@@ -139,7 +139,7 @@ BaseConversion::BaseConversion(QWidget *parent)
         QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
         QByteArray data = socket->readAll();
 
-		message = QString("[%1]# RESV>\n%2\n").arg(date).arg(QString(data));
+		message = QString(tr("[%1]# RESV>\n%2\n")).arg(date).arg(QString(data));
 		ui.plainTextEditDataLogServer->appendPlainText(message);
         });
     // 客户端接受到数据
@@ -147,13 +147,20 @@ BaseConversion::BaseConversion(QWidget *parent)
         QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
         QByteArray data = socket->readAll();
 
-        message = QString("[%1]# RESV>\n%2\n").arg(date).arg(QString(data));
+        message = QString(tr("[%1]# RESV>\n%2\n")).arg(date).arg(QString(data));
         ui.plainTextEditDataLogClient->appendPlainText(message);
         });
     // 服务器发送数据
     connect(ui.pushButtonSendServer, &QPushButton::clicked, this, [&]() {
+        // 获取时间
+        QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
         // 获取当前选中的客户端
         QTcpSocket* socket = server->getAllClients().at(ui.comboBoxAllClient->currentIndex());
+        if (!socket) {
+            message = QString(tr("[%1]# SEND error, no client selected.\n")).arg(date);
+            ui.plainTextEditDataLogServer->appendPlainText(message);
+            return;
+        }
         // 获取文本域中的数据
 		QByteArray data = ui.plainTextEditSendDataServer->toPlainText().toLocal8Bit();
         // 如果设置了输入16进制数据
@@ -171,14 +178,18 @@ BaseConversion::BaseConversion(QWidget *parent)
         // 发送至客户端
         socket->write(data);
 
-        // 获取时间
-        QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
         // 格式化日志信息
-        message = QString("[%1]# SEND>\n%2\n").arg(date).arg(QString(data));
+        message = QString(tr("[%1]# SEND>\n%2\n")).arg(date).arg(QString(data));
         ui.plainTextEditDataLogServer->appendPlainText(message);
         });
     // 客户端发送数据
     connect(ui.pushButtonSendClient, &QPushButton::clicked, this, [&]() {
+        QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+        if (!client->isConnected()) {
+            message = QString(tr("[%1]# SEND error, no connection to server.\n")).arg(date);
+            ui.plainTextEditDataLogClient->appendPlainText(message);
+            return;
+        }
         // 获取文本域中的数据
         QByteArray data = ui.plainTextEditSendDataClient->toPlainText().toLocal8Bit();
         // 如果设置了输入16进制数据
@@ -196,8 +207,7 @@ BaseConversion::BaseConversion(QWidget *parent)
         // 发送至服务器
         client->sendData(data);
 
-        QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
-        message = QString("[%1]# SEND>\n%2\n").arg(date).arg(QString(data));
+        message = QString(tr("[%1]# SEND>\n%2\n")).arg(date).arg(QString(data));
         ui.plainTextEditDataLogClient->appendPlainText(message);
         });
 
